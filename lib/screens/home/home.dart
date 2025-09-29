@@ -1,3 +1,4 @@
+import 'package:adaptive_theme/adaptive_theme.dart' show AdaptiveTheme;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -53,7 +54,7 @@ class _HomeState extends State<Home> {
   searchedHabit(){
     print(_searchController.text);
     searchedHabits.clear();
-    for(HabitModel habit in Habit_Http_Repository.habitsTest ){
+    for(HabitModel habit in habits! ){
 
       if(habit.name.toString().toLowerCase().contains(_searchController.text.toLowerCase()) || habit.frequency.toString().toLowerCase().contains(_searchController.text.toLowerCase())){
         setState(() {
@@ -140,9 +141,9 @@ class _HomeState extends State<Home> {
               menuWidget: MenuDropdown(
                 pullDownMenuItem: [
                   PullDownMenuItem(
-                    title: 'View All',
+                    title: 'Light/Dark Mode',
                     onTap: () {
-
+                      darkLightBottomSheet();
                     },
                   ),
                   const PullDownMenuDivider(),
@@ -354,7 +355,7 @@ class _HomeState extends State<Home> {
                                                 RichText(
                                                   textAlign: TextAlign.center,
                                                   text: TextSpan(
-                                                    text: "${item.dateCreated}",
+                                                    text: "${item.dateCreated.substring(0,10)}",
                                                     style: Theme.of(context)
                                                         .primaryTextTheme
                                                         .headlineSmall
@@ -395,7 +396,7 @@ class _HomeState extends State<Home> {
                                                 RichText(
                                                   textAlign: TextAlign.center,
                                                   text: TextSpan(
-                                                    text: item.dateUpdated,
+                                                    text: item.status,
                                                     style: Theme.of(context)
                                                         .primaryTextTheme
                                                         .headlineSmall
@@ -595,7 +596,7 @@ class _HomeState extends State<Home> {
                                                 RichText(
                                                   textAlign: TextAlign.center,
                                                   text: TextSpan(
-                                                    text: "${item.dateCreated}",
+                                                    text: "${item.dateCreated.substring(0,10)}",
                                                     style: Theme.of(context)
                                                         .primaryTextTheme
                                                         .headlineSmall
@@ -636,7 +637,7 @@ class _HomeState extends State<Home> {
                                                 RichText(
                                                   textAlign: TextAlign.center,
                                                   text: TextSpan(
-                                                    text: item.dateUpdated,
+                                                    text: item.status,
                                                     style: Theme.of(context)
                                                         .primaryTextTheme
                                                         .headlineSmall
@@ -1787,6 +1788,358 @@ class _HomeState extends State<Home> {
     });
   }
 
+  void darkLightBottomSheet() {
+    DialogWidgets.customBodyDialog(
+        context,
+        noDismissIcon: true,
+        transparency: MaterialType.transparency,
+        child: CustomStatefulBody(
+          body: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setStateSB) {
+                Size size = MediaQuery.of(context).size;
+                return Container(
+                    height: size.height/2.8,
+                    margin: const EdgeInsets.all(20),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const SizedBox(
+                            width: 50,
+                            child: Divider(
+                              thickness: 4,
+                              color: AppColors.disabledButton,
+                            ),
+                          ),
+                          Padding(
+                              padding: const EdgeInsets.only(right: 0, left: 20, top: 24),
+                              child: Text(
+                                "Display Theme",
+                                style: TextStyle(
+                                    fontSize: 24,
+                                    color: Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.w700,
+                                    decoration: TextDecoration.none,
+                                    // fontFamily: 'Inter',
+                                    fontStyle: FontStyle.normal),
+                                textAlign: TextAlign.center,
+                              )
+                          ),
+                          const Padding(
+                              padding:  EdgeInsets.only(right: 20, left: 20, top: 8),
+                              child: Text(
+                                "Select the display theme you are confortable with",
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    color: AppColors.subHeaderLogin,
+                                    fontWeight: FontWeight.w400,
+                                    decoration: TextDecoration.none,
+                                    // fontFamily: 'Helvetica-Neue-Font',
+                                    fontStyle: FontStyle.normal),
+                                textAlign: TextAlign.center,
+                              )
+                          ),
+                          const SizedBox(
+                            height: 40,
+                          ),
+                          CustomTextWithImages(
+                            imageRightColor:
+                            Theme.of(context).colorScheme.error,
+                            imageLeftColor:
+                            Theme.of(context).colorScheme.error,
+                            imageLeft: add_user,
+                            imageRight: add_user,
+                            width: 25,
+                            height: 25,
+                            right: 0,
+                            left: 0,
+                            top: 10,
+                            bottom: 10,
+                            hasNoImages: true,
+                            imageIsRight: true,
+                            textChild: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 25,
+                                  height: 25,
+                                  child: SvgPicture.asset(
+                                    light,
+                                    color:
+                                    Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                                GestureDetector(
+                                  onTap: (){
+                                    AdaptiveTheme.of(context).setLight();
+                                  },
+                                  child: RichText(
+                                    // textAlign: TextAlign.center,
+                                    text: TextSpan(
+                                      text: "Light Mode",
+                                      style: Theme.of(context)
+                                          .primaryTextTheme
+                                          .headlineSmall
+                                          ?.copyWith(
+                                          fontSize: 16,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          fontWeight: FontWeight.w500),
+                                      // Default style for the entire RichText
+                                      // style: DefaultTextStyle.of(context).style,
+                                      children: <TextSpan>[
+                                        TextSpan(
+                                          text: '',
+                                          style: Theme.of(context)
+                                              .primaryTextTheme
+                                              .headlineSmall
+                                              ?.copyWith(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            decoration:
+                                            TextDecoration.underline,
+                                            decorationColor:
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
 
+                                            },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const Spacer(),
+                                Container(
+                                    height: 20,
+                                    width: 20,
+                                    margin: const EdgeInsets.only(right: 0),
+                                    padding: const EdgeInsets.all(0.0),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(50),
+                                      border: Border.all(
+                                        width: 2,
+                                        color: AdaptiveTheme.of(context).mode.isLight ? AppColors.greenDeep : AppColors.steelGray.withOpacity(0.3),
+                                      ),
+                                    ),
+                                    child: AdaptiveTheme.of(context).mode.isLight ? SvgPicture.asset(
+                                      circled_x,
+                                      color: AppColors.greenDeep,
+                                      height: 10,
+                                      width: 10,
+                                    ): const SizedBox.shrink()
+                                )
+                              ],
+                            ),
+                          ),
+                          CustomTextWithImages(
+                            imageRightColor:
+                            Theme.of(context).colorScheme.error,
+                            imageLeftColor:
+                            Theme.of(context).colorScheme.error,
+                            imageLeft: add_user,
+                            imageRight: add_user,
+                            width: 25,
+                            height: 25,
+                            right: 0,
+                            left: 0,
+                            top: 10,
+                            bottom: 10,
+                            hasNoImages: true,
+                            imageIsRight: true,
+                            textChild: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: SvgPicture.asset(
+                                    dark,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 17,
+                                ),
+                                GestureDetector(
+                                  onTap: (){
+                                    AdaptiveTheme.of(context).setDark();
+                                  },
+                                  child: RichText(
+                                    // textAlign: TextAlign.center,
+                                    text: TextSpan(
+                                      text: "Dark Mode",
+                                      style: Theme.of(context)
+                                          .primaryTextTheme
+                                          .headlineSmall
+                                          ?.copyWith(
+                                          fontSize: 16,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          fontWeight: FontWeight.w500),
+                                      // Default style for the entire RichText
+                                      // style: DefaultTextStyle.of(context).style,
+                                      children: <TextSpan>[
+                                        TextSpan(
+                                          text: '',
+                                          style: Theme.of(context)
+                                              .primaryTextTheme
+                                              .headlineSmall
+                                              ?.copyWith(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            decoration:
+                                            TextDecoration.underline,
+                                            decorationColor:
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+
+                                            },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const Spacer(),
+                                Container(
+                                    height: 20,
+                                    width: 20,
+                                    margin: const EdgeInsets.only(right: 0),
+                                    padding: const EdgeInsets.all(0.0),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(50),
+                                      border: Border.all(
+                                        width: 2,
+                                        color: AdaptiveTheme.of(context).mode.isDark ? AppColors.greenDeep : AppColors.steelGray.withOpacity(0.3),
+                                      ),
+                                    ),
+                                    child: AdaptiveTheme.of(context).mode.isDark ? SvgPicture.asset(
+                                      circled_x,
+                                      color: AppColors.greenDeep,
+                                      height: 10,
+                                      width: 10,
+                                    ): const SizedBox.shrink()
+                                )
+                              ],
+                            ),
+                          ),
+                          CustomTextWithImages(
+                            imageRightColor:
+                            Theme.of(context).colorScheme.error,
+                            imageLeftColor:
+                            Theme.of(context).colorScheme.error,
+                            imageLeft: add_user,
+                            imageRight: add_user,
+                            width: 25,
+                            height: 25,
+                            right: 0,
+                            left: 0,
+                            top: 10,
+                            bottom: 10,
+                            hasNoImages: true,
+                            imageIsRight: true,
+                            textChild: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: SvgPicture.asset(
+                                    system_setting,
+                                    color:
+                                    Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                                GestureDetector(
+                                  onTap: (){
+                                    AdaptiveTheme.of(context).setSystem();
+                                  },
+                                  child: RichText(
+                                    // textAlign: TextAlign.center,
+                                    text: TextSpan(
+                                      text: "System Settings",
+                                      style: Theme.of(context)
+                                          .primaryTextTheme
+                                          .headlineSmall
+                                          ?.copyWith(
+                                          fontSize: 16,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          fontWeight: FontWeight.w500),
+                                      // Default style for the entire RichText
+                                      // style: DefaultTextStyle.of(context).style,
+                                      children: <TextSpan>[
+                                        TextSpan(
+                                          text: '',
+                                          style: Theme.of(context)
+                                              .primaryTextTheme
+                                              .headlineSmall
+                                              ?.copyWith(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            decoration:
+                                            TextDecoration.underline,
+                                            decorationColor:
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+
+                                            },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const Spacer(),
+                                Container(
+                                    height: 20,
+                                    width: 20,
+                                    margin: const EdgeInsets.only(right: 0),
+                                    padding: const EdgeInsets.all(0.0),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(50),
+                                      border: Border.all(
+                                        width: 2,
+                                        color: AdaptiveTheme.of(context).mode.isSystem ? AppColors.greenDeep : AppColors.steelGray.withOpacity(0.3),
+                                      ),
+                                    ),
+                                    child: AdaptiveTheme.of(context).mode.isSystem ? SvgPicture.asset(
+                                      circled_x,
+                                      color: AppColors.greenDeep,
+                                      height: 10,
+                                      width: 10,
+                                    ): const SizedBox.shrink()
+                                )
+                              ],
+                            ),
+                          ),
+
+                        ],
+                      ),
+                    )
+                );
+              }
+          ),
+        )
+    );
+
+  }
 
 }
