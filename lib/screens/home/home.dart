@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:pull_down_button/pull_down_button.dart';
@@ -12,13 +13,16 @@ import 'package:yolanda/components/custom_stateful_body.dart';
 import 'package:yolanda/components/custom_text_with_Images.dart';
 import 'package:yolanda/components/customfield.dart';
 import 'package:yolanda/components/dialogs.dart';
+import 'package:yolanda/components/empty_state_widget.dart';
 import 'package:yolanda/components/image_widgets.dart';
 import 'package:yolanda/components/menu_dropdown.dart';
 import 'package:yolanda/constants/constants.dart';
 import 'package:yolanda/constants/responsiveness.dart';
 import 'package:yolanda/constants/svgs.dart';
+import 'package:yolanda/controller/habit_controller.dart';
 import 'package:yolanda/models/habit_model.dart';
 import 'package:yolanda/repositories/Habit_Http_Repository.dart';
+import 'package:yolanda/services/loading_overlay_service.dart';
 import 'package:yolanda/styles/app_colors.dart';
 
 class Home extends StatefulWidget {
@@ -30,11 +34,23 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 
+  Habit_Controller habit_controller = Habit_Controller(Habit_Http_Repository());
   TextEditingController _nameController = TextEditingController();
   TextEditingController _searchController = TextEditingController();
+  static String onChangeDropDownValueFrequency = "";
+  static String dropDownValueFrequency = "";
   bool isEmpty = true;
   List<HabitModel> searchedHabits = [];
-  searchRoles(){
+  List<HabitModel>? habits;
+  @override
+  void initState(){
+    getHabitsController();
+    // habits = Habit_Http_Repository.habitsTest;
+    _searchController.addListener(searchedHabit);
+    super.initState();
+  }
+
+  searchedHabit(){
     print(_searchController.text);
     searchedHabits.clear();
     for(HabitModel habit in Habit_Http_Repository.habitsTest ){
@@ -179,7 +195,7 @@ class _HomeState extends State<Home> {
                   // the method which is called
                   // when button is pressed
                   onPressed: () {
-
+                    getHabitsController();
                   },
                 ),
               ],
@@ -187,6 +203,509 @@ class _HomeState extends State<Home> {
             const SizedBox(
               height: 10,
             ),
+            Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.only(left: 20, right: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      isEmpty ?
+                      habits == null || habits!.isEmpty ?
+                      Center(
+                        child: EmptyStateWidget(
+                            isException: true,
+                            isError: true,
+                            message: "You have No Habits to Track",
+                            icon: null
+                        ),
+                      ):
+                      ListView.builder(
+                          itemCount: habits!.length,
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemBuilder: (itemBuilder, index){
+                            final HabitModel item = habits![index];
+                            return Column(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    viewDetailsBottomSheet(context: context, habit: item);
+                                  },
+                                  child: CustomTextWithImages(
+                                    imageRightColor:
+                                    Theme.of(context).colorScheme.primary,
+                                    imageLeftColor:
+                                    Theme.of(context).colorScheme.primary,
+                                    imageLeft: back_arrow,
+                                    imageRight: arrow_right,
+                                    width: 25,
+                                    height: 25,
+                                    right: 0,
+                                    left: 0,
+                                    top: 10,
+                                    bottom: 10,
+                                    hasNoImages: true,
+                                    imageIsRight: true,
+                                    textChild: Row(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          // width: 25,
+                                          // height: 25,
+                                          child: SvgPicture.asset(
+                                            time,
+                                            // color: Theme.of(context).colorScheme.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                        Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                RichText(
+                                                  text: TextSpan(
+                                                    text: item.name,
+                                                    style: Theme.of(context)
+                                                        .primaryTextTheme
+                                                        .headlineSmall
+                                                        ?.copyWith(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.w500),
+                                                    // Default style for the entire RichText
+                                                    // style: DefaultTextStyle.of(context).style,
+                                                    children: <TextSpan>[
+                                                      TextSpan(
+                                                        text: '',
+                                                        style: Theme.of(context)
+                                                            .primaryTextTheme
+                                                            .headlineSmall
+                                                            ?.copyWith(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.w500,
+                                                          decoration:
+                                                          TextDecoration.underline,
+                                                          decorationColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                        ),
+                                                        recognizer: TapGestureRecognizer()
+                                                          ..onTap = () {
+
+
+
+                                                          },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 5,
+                                                ),
+                                                RichText(
+                                                  text: TextSpan(
+                                                    text: "${item.frequency}",
+                                                    style: Theme.of(context)
+                                                        .primaryTextTheme
+                                                        .headlineSmall
+                                                        ?.copyWith(
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.w400),
+                                                    // Default style for the entire RichText
+                                                    // style: DefaultTextStyle.of(context).style,
+                                                    children: <TextSpan>[
+                                                      TextSpan(
+                                                        text: '',
+                                                        style: Theme.of(context)
+                                                            .primaryTextTheme
+                                                            .headlineSmall
+                                                            ?.copyWith(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.w500,
+                                                          decoration:
+                                                          TextDecoration.underline,
+                                                          decorationColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                        ),
+                                                        recognizer: TapGestureRecognizer()
+                                                          ..onTap = () {
+
+
+
+                                                          },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                        ),
+                                        Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              children: [
+                                                RichText(
+                                                  textAlign: TextAlign.center,
+                                                  text: TextSpan(
+                                                    text: "${item.dateCreated}",
+                                                    style: Theme.of(context)
+                                                        .primaryTextTheme
+                                                        .headlineSmall
+                                                        ?.copyWith(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.w500),
+                                                    // Default style for the entire RichText
+                                                    // style: DefaultTextStyle.of(context).style,
+                                                    children: <TextSpan>[
+                                                      TextSpan(
+                                                        text: '',
+                                                        style: Theme.of(context)
+                                                            .primaryTextTheme
+                                                            .headlineSmall
+                                                            ?.copyWith(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.w500,
+                                                          decoration:
+                                                          TextDecoration.underline,
+                                                          decorationColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                        ),
+                                                        recognizer: TapGestureRecognizer()
+                                                          ..onTap = () {
+
+
+
+                                                          },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 5,
+                                                ),
+                                                RichText(
+                                                  textAlign: TextAlign.center,
+                                                  text: TextSpan(
+                                                    text: item.dateUpdated,
+                                                    style: Theme.of(context)
+                                                        .primaryTextTheme
+                                                        .headlineSmall
+                                                        ?.copyWith(
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.w500,
+                                                        color: Colors.orange
+                                                    ),
+                                                    // Default style for the entire RichText
+                                                    // style: DefaultTextStyle.of(context).style,
+                                                    children: <TextSpan>[
+                                                      TextSpan(
+                                                        text: '',
+                                                        style: Theme.of(context)
+                                                            .primaryTextTheme
+                                                            .headlineSmall
+                                                            ?.copyWith(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.w500,
+                                                          decoration:
+                                                          TextDecoration.underline,
+                                                          decorationColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                        ),
+                                                        recognizer: TapGestureRecognizer()
+                                                          ..onTap = () {
+
+
+
+                                                          },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                        ),
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                        SizedBox(
+                                          width: 25,
+                                          height: 25,
+                                          child: SvgPicture.asset(
+                                            arrow_right,
+                                            color: Theme.of(context).colorScheme.primary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  margin: const EdgeInsets.only(bottom: 0, top: 0),
+                                  child: const Divider(
+                                    thickness: 0.5,
+                                    color: AppColors.disabledButton,
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                      ):
+                      ListView.builder(
+                          itemCount: searchedHabits.length,
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemBuilder: (itemBuilder, index){
+                            final HabitModel item = searchedHabits[index];
+                            return Column(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    viewDetailsBottomSheet(context: context, habit: item);
+                                  },
+                                  child: CustomTextWithImages(
+                                    imageRightColor:
+                                    Theme.of(context).colorScheme.primary,
+                                    imageLeftColor:
+                                    Theme.of(context).colorScheme.primary,
+                                    imageLeft: back_arrow,
+                                    imageRight: arrow_right,
+                                    width: 25,
+                                    height: 25,
+                                    right: 0,
+                                    left: 0,
+                                    top: 10,
+                                    bottom: 10,
+                                    hasNoImages: true,
+                                    imageIsRight: true,
+                                    textChild: Row(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          // width: 25,
+                                          // height: 25,
+                                          child: SvgPicture.asset(
+                                            time,
+                                            // color: Theme.of(context).colorScheme.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                        Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                RichText(
+                                                  text: TextSpan(
+                                                    text: item.name,
+                                                    style: Theme.of(context)
+                                                        .primaryTextTheme
+                                                        .headlineSmall
+                                                        ?.copyWith(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.w500),
+                                                    // Default style for the entire RichText
+                                                    // style: DefaultTextStyle.of(context).style,
+                                                    children: <TextSpan>[
+                                                      TextSpan(
+                                                        text: '',
+                                                        style: Theme.of(context)
+                                                            .primaryTextTheme
+                                                            .headlineSmall
+                                                            ?.copyWith(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.w500,
+                                                          decoration:
+                                                          TextDecoration.underline,
+                                                          decorationColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                        ),
+                                                        recognizer: TapGestureRecognizer()
+                                                          ..onTap = () {
+
+
+
+                                                          },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 5,
+                                                ),
+                                                RichText(
+                                                  text: TextSpan(
+                                                    text: "${item.frequency}",
+                                                    style: Theme.of(context)
+                                                        .primaryTextTheme
+                                                        .headlineSmall
+                                                        ?.copyWith(
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.w400),
+                                                    // Default style for the entire RichText
+                                                    // style: DefaultTextStyle.of(context).style,
+                                                    children: <TextSpan>[
+                                                      TextSpan(
+                                                        text: '',
+                                                        style: Theme.of(context)
+                                                            .primaryTextTheme
+                                                            .headlineSmall
+                                                            ?.copyWith(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.w500,
+                                                          decoration:
+                                                          TextDecoration.underline,
+                                                          decorationColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                        ),
+                                                        recognizer: TapGestureRecognizer()
+                                                          ..onTap = () {
+
+
+
+                                                          },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                        ),
+                                        Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              children: [
+                                                RichText(
+                                                  textAlign: TextAlign.center,
+                                                  text: TextSpan(
+                                                    text: "${item.dateCreated}",
+                                                    style: Theme.of(context)
+                                                        .primaryTextTheme
+                                                        .headlineSmall
+                                                        ?.copyWith(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.w500),
+                                                    // Default style for the entire RichText
+                                                    // style: DefaultTextStyle.of(context).style,
+                                                    children: <TextSpan>[
+                                                      TextSpan(
+                                                        text: '',
+                                                        style: Theme.of(context)
+                                                            .primaryTextTheme
+                                                            .headlineSmall
+                                                            ?.copyWith(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.w500,
+                                                          decoration:
+                                                          TextDecoration.underline,
+                                                          decorationColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                        ),
+                                                        recognizer: TapGestureRecognizer()
+                                                          ..onTap = () {
+
+
+
+                                                          },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 5,
+                                                ),
+                                                RichText(
+                                                  textAlign: TextAlign.center,
+                                                  text: TextSpan(
+                                                    text: item.dateUpdated,
+                                                    style: Theme.of(context)
+                                                        .primaryTextTheme
+                                                        .headlineSmall
+                                                        ?.copyWith(
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.w500,
+                                                        color: Colors.orange
+                                                    ),
+                                                    // Default style for the entire RichText
+                                                    // style: DefaultTextStyle.of(context).style,
+                                                    children: <TextSpan>[
+                                                      TextSpan(
+                                                        text: '',
+                                                        style: Theme.of(context)
+                                                            .primaryTextTheme
+                                                            .headlineSmall
+                                                            ?.copyWith(
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.w500,
+                                                          decoration:
+                                                          TextDecoration.underline,
+                                                          decorationColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                        ),
+                                                        recognizer: TapGestureRecognizer()
+                                                          ..onTap = () {
+
+
+
+                                                          },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                        ),
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                        SizedBox(
+                                          width: 25,
+                                          height: 25,
+                                          child: SvgPicture.asset(
+                                            arrow_right,
+                                            color: Theme.of(context).colorScheme.primary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  margin: const EdgeInsets.only(bottom: 0, top: 0),
+                                  child: const Divider(
+                                    thickness: 0.5,
+                                    color: AppColors.disabledButton,
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                      )
+                    ],
+                  ),
+                )
+            )
           ],
         ),
       ),
@@ -205,7 +724,7 @@ class _HomeState extends State<Home> {
               builder: (BuildContext context, StateSetter setStateSB) {
                 Size size = MediaQuery.of(context).size;
                 return Container(
-                    height: size.height/1.9,
+                    height: size.height/2.0,
                     margin: const EdgeInsets.all(20),
                     child: Column(
                       children: [
@@ -349,11 +868,12 @@ class _HomeState extends State<Home> {
                                       headtext: "Name",
                                       obscureText: false,
                                       // contentPadding: EdgeInsets.zero,
-                                      // pIcon: SvgPicture.asset(
-                                      //   username_icon,
-                                      //   height: 24,
-                                      //   width: 24,
-                                      // ),
+                                      pIcon: SvgPicture.asset(
+                                        person_outline,
+                                        height: 24,
+                                        width: 24,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
                                       keyboardType: TextInputType.text,
                                       fieldType: TextFieldType.others,
                                       width: MediaQuery.of(context).size.width / 1.1,
@@ -364,12 +884,113 @@ class _HomeState extends State<Home> {
                                       onChanged: checkIfAllFieldsAreFilled(),
                                     ),
                                   ),
+                                  const SizedBox(
+                                    height: 20,
+                                  ),
+                                  FutureBuilder<List<String>?>(
+                                    future: habit_controller.getFrequenciesController(),
+                                    builder: (context, snapshot) {
+                                      switch (snapshot.connectionState) {
+                                        case ConnectionState.waiting:
+                                          return Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        case ConnectionState.done:
+                                          if (snapshot.hasError)
+                                            return Text(snapshot.error.toString());
+                                          else {
+                                            return Container(
+                                              height: 56,
+                                              margin: const EdgeInsets.only(
+                                                  left: 0, right: 0, top: 0, bottom: 0),
+                                              padding: const EdgeInsets.only(left: 20, right: 12),
+                                              decoration: BoxDecoration(
+                                                  color: Theme.of(context).colorScheme.secondaryFixed,
+                                                  border: Border.all(
+                                                    color: AppColors.steelGray.withOpacity(0.5),
+                                                  ),
+                                                  borderRadius: const BorderRadius.only(
+                                                      bottomLeft: Radius.circular(8),
+                                                      bottomRight: Radius.circular(8),
+                                                      topRight: Radius.circular(8),
+                                                      topLeft: Radius.circular(8))),
+                                              child: DropdownButton(
+                                                dropdownColor: Theme.of(context).colorScheme.secondaryFixed,
+                                                icon: SvgPicture.asset(
+                                                  arrow_right,
+                                                    height: 24,
+                                                    width: 24,
+                                                  color: Theme.of(context).colorScheme.primary,
+                                                  ),
+                                                underline:
+                                                const SizedBox(), //removes the underline
+                                                hint: dropDownValueFrequency == ""
+                                                    ? Text(
+                                                  'Select Frequency',
+                                                  style: Theme.of(context)
+                                                      .primaryTextTheme
+                                                      .headlineSmall
+                                                      ?.copyWith(
+                                                    color: Theme.of(context).colorScheme.primary,
+                                                    // fontFamily: "Inter"
+                                                  ),
+                                                )
+                                                    : Text(
+                                                  dropDownValueFrequency,
+                                                  style: Theme.of(context)
+                                                      .primaryTextTheme
+                                                      .headlineSmall
+                                                      ?.copyWith(
+                                                    color: Theme.of(context).colorScheme.primary,
+                                                    // fontFamily: "Inter"
+                                                  ),
+                                                ),
+                                                isExpanded: true,
+                                                iconSize: 30.0,
+                                                style: Theme.of(context)
+                                                    .primaryTextTheme
+                                                    .headlineSmall
+                                                    ?.copyWith(
+                                                  color: Theme.of(context).colorScheme.primary,
+                                                  // fontFamily: "Inter"
+                                                ),
+                                                items: snapshot.data!.map(
+                                                  //(data as List).map(
+                                                      (val) {
+                                                    return DropdownMenuItem<String>(
+                                                      onTap: () {
+                                                        setState(() {
+                                                          onChangeDropDownValueFrequency = val;
+                                                          print(onChangeDropDownValueFrequency);
+                                                        });
+                                                      },
+                                                      value: val,
+                                                      child: Text(val),
+                                                    );
+                                                  },
+                                                ).toList(),
+                                                onChanged: (val) {
+                                                  print(val);
+                                                  setState(() {
+                                                    dropDownValueFrequency = val!;
+                                                  });
+                                                },
+                                              ),
+                                            );
+                                          }
+
+                                        default:
+                                          return Text('Unhandle State');
+                                      }
+                                    },
+                                  ),
+
                                 ],
                               ),
                             )
                         ),
                         SizedBox(
-                          height: SizeConfig.yMargin(context, 1),
+                          height: SizeConfig.yMargin(context, 5),
                         ),
                         Row(
                           children: [
@@ -416,14 +1037,36 @@ class _HomeState extends State<Home> {
                                     isOutline: true,
                                     onTap: () async {
 
-                                      Get.back();
+                                      if(_nameController.text.isNotEmpty && dropDownValueFrequency.isNotEmpty) {
+                                        HabitModel habitModel = HabitModel
+                                            .fromJson({
+                                          "name": _nameController.text,
+                                          "frequency": dropDownValueFrequency,
+                                          "status": "Pending",
+                                          "dateCreated": DateTime
+                                              .now()
+                                              .toString(),
+                                          "dateUpdated": DateTime
+                                              .now()
+                                              .toString(),
+                                        });
+
+                                        createHabitsController(
+                                          habitModel: habitModel,
+                                        );
+
+                                      }else{
+                                        Get.snackbar("Fields Required", "All fields are required", backgroundColor: Colors.red);
+                                      }
+
+
 
                                     }),
                             )
                           ],
                         ),
                         SizedBox(
-                          height: SizeConfig.yMargin(context, 1),
+                          height: SizeConfig.yMargin(context, 5),
                         )
                       ],
                     )
@@ -440,6 +1083,8 @@ class _HomeState extends State<Home> {
 
   void viewDetailsBottomSheet({
     required BuildContext context,
+    required HabitModel habit,
+
   }) {
     DialogWidgets.customBodyDialog(
         context,
@@ -450,7 +1095,7 @@ class _HomeState extends State<Home> {
               builder: (BuildContext context, StateSetter setStateSB) {
                 Size size = MediaQuery.of(context).size;
                 return Container(
-                    height: size.height/1.2,
+                    height: size.height/1.8,
                     margin: const EdgeInsets.all(20),
                     child: Column(
                       children: [
@@ -462,9 +1107,9 @@ class _HomeState extends State<Home> {
                           ),
                         ),
                         Padding(
-                            padding: const EdgeInsets.only(right: 0, left: 20, top: 0),
+                            padding: const EdgeInsets.only(right: 0, left: 20, top: 20),
                             child: Text(
-                              "Transaction Details",
+                              "Habit Details",
                               style: TextStyle(
                                   fontSize: 18,
                                   color: Theme.of(context).colorScheme.primary,
@@ -537,7 +1182,7 @@ class _HomeState extends State<Home> {
                                                   textAlign: TextAlign.start,
                                                   text: TextSpan(
                                                     text:
-                                                    "The incoming transfer has been identified and is currently being processed.",
+                                                    "View the details of your habit tracker",
                                                     style: Theme.of(context)
                                                         .primaryTextTheme
                                                         .headlineSmall
@@ -592,7 +1237,7 @@ class _HomeState extends State<Home> {
                                       Theme.of(context).colorScheme.primary.withOpacity(0.2),
                                       gradientColor4:
                                       Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                                      height: size.height / 1.6,
+                                      height: size.height / 3.2,
                                       width: size.width / 1.1,
                                       // height: menuButtonPressed ? size.width * 0.18 : size.width * 0.14,
                                       // width: menuButtonPressed ? size.width * 0.18 : size.width * 0.14,
@@ -636,7 +1281,7 @@ class _HomeState extends State<Home> {
                                                         textAlign: TextAlign.start,
                                                         text: TextSpan(
                                                           text:
-                                                          "Status: ",
+                                                          "Name: ",
                                                           style: Theme.of(context)
                                                               .primaryTextTheme
                                                               .headlineSmall
@@ -672,7 +1317,7 @@ class _HomeState extends State<Home> {
                                                         textAlign: TextAlign.start,
                                                         text: TextSpan(
                                                           text:
-                                                          "Pending",
+                                                          habit.name,
                                                           style: Theme.of(context)
                                                               .primaryTextTheme
                                                               .headlineSmall
@@ -721,7 +1366,7 @@ class _HomeState extends State<Home> {
                                                         textAlign: TextAlign.start,
                                                         text: TextSpan(
                                                           text:
-                                                          "Transaction Type: ",
+                                                          "Frequency: ",
                                                           style: Theme.of(context)
                                                               .primaryTextTheme
                                                               .headlineSmall
@@ -757,7 +1402,7 @@ class _HomeState extends State<Home> {
                                                         textAlign: TextAlign.start,
                                                         text: TextSpan(
                                                           text:
-                                                          "NIP INWARD TRANSACTION",
+                                                          habit.frequency,
                                                           style: Theme.of(context)
                                                               .primaryTextTheme
                                                               .headlineSmall
@@ -805,7 +1450,7 @@ class _HomeState extends State<Home> {
                                                         textAlign: TextAlign.start,
                                                         text: TextSpan(
                                                           text:
-                                                          "Transaction Amount: ",
+                                                          "Status: ",
                                                           style: Theme.of(context)
                                                               .primaryTextTheme
                                                               .headlineSmall
@@ -841,7 +1486,7 @@ class _HomeState extends State<Home> {
                                                         textAlign: TextAlign.start,
                                                         text: TextSpan(
                                                           text:
-                                                          "₦10,000.50",
+                                                          habit.status,
                                                           style: Theme.of(context)
                                                               .primaryTextTheme
                                                               .headlineSmall
@@ -889,7 +1534,7 @@ class _HomeState extends State<Home> {
                                                         textAlign: TextAlign.start,
                                                         text: TextSpan(
                                                           text:
-                                                          "Sender Name: ",
+                                                          "Date Created: ",
                                                           style: Theme.of(context)
                                                               .primaryTextTheme
                                                               .headlineSmall
@@ -925,7 +1570,7 @@ class _HomeState extends State<Home> {
                                                         textAlign: TextAlign.start,
                                                         text: TextSpan(
                                                           text:
-                                                          "Sefunmi Afere",
+                                                          habit.dateCreated,
                                                           style: Theme.of(context)
                                                               .primaryTextTheme
                                                               .headlineSmall
@@ -973,7 +1618,7 @@ class _HomeState extends State<Home> {
                                                         textAlign: TextAlign.start,
                                                         text: TextSpan(
                                                           text:
-                                                          "Sending Bank: ",
+                                                          "Date Updated: ",
                                                           style: Theme.of(context)
                                                               .primaryTextTheme
                                                               .headlineSmall
@@ -1009,7 +1654,7 @@ class _HomeState extends State<Home> {
                                                         textAlign: TextAlign.start,
                                                         text: TextSpan(
                                                           text:
-                                                          "Sterling Bank",
+                                                          habit.dateUpdated,
                                                           style: Theme.of(context)
                                                               .primaryTextTheme
                                                               .headlineSmall
@@ -1041,426 +1686,7 @@ class _HomeState extends State<Home> {
                                                     ),
                                                   ],
                                                 ),
-                                                Container(
-                                                  margin: const EdgeInsets.only(bottom: 10, top: 10),
-                                                  child: const Divider(
-                                                    thickness: 1,
-                                                    color: AppColors.disabledButton,
-                                                  ),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    Expanded(
-                                                      child: RichText(
-                                                        textAlign: TextAlign.start,
-                                                        text: TextSpan(
-                                                          text:
-                                                          "Transaction Date: ",
-                                                          style: Theme.of(context)
-                                                              .primaryTextTheme
-                                                              .headlineSmall
-                                                              ?.copyWith(
-                                                              fontSize: 14,
-                                                              fontWeight: FontWeight.w500),
-                                                          // Default style for the entire RichText
-                                                          // style: DefaultTextStyle.of(context).style,
-                                                          children: <TextSpan>[
-                                                            TextSpan(
-                                                              text: '',
-                                                              style: Theme.of(context)
-                                                                  .primaryTextTheme
-                                                                  .headlineSmall
-                                                                  ?.copyWith(
-                                                                fontSize: 16,
-                                                                fontWeight: FontWeight.w500,
-                                                                decoration:
-                                                                TextDecoration.underline,
-                                                                decorationColor: Theme.of(context)
-                                                                    .colorScheme
-                                                                    .primary,
-                                                              ),
 
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      flex: 1,
-                                                      child: RichText(
-                                                        textAlign: TextAlign.start,
-                                                        text: TextSpan(
-                                                          text:
-                                                          "01/02/2024",
-                                                          style: Theme.of(context)
-                                                              .primaryTextTheme
-                                                              .headlineSmall
-                                                              ?.copyWith(
-                                                              fontSize: 14,
-                                                              fontWeight: FontWeight.w500),
-                                                          // Default style for the entire RichText
-                                                          // style: DefaultTextStyle.of(context).style,
-                                                          children: <TextSpan>[
-                                                            TextSpan(
-                                                              text: '',
-                                                              style: Theme.of(context)
-                                                                  .primaryTextTheme
-                                                                  .headlineSmall
-                                                                  ?.copyWith(
-                                                                fontSize: 16,
-                                                                fontWeight: FontWeight.w500,
-                                                                decoration:
-                                                                TextDecoration.underline,
-                                                                decorationColor: Theme.of(context)
-                                                                    .colorScheme
-                                                                    .primary,
-                                                              ),
-
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                Container(
-                                                  margin: const EdgeInsets.only(bottom: 10, top: 10),
-                                                  child: const Divider(
-                                                    thickness: 1,
-                                                    color: AppColors.disabledButton,
-                                                  ),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    Expanded(
-                                                      child: RichText(
-                                                        textAlign: TextAlign.start,
-                                                        text: TextSpan(
-                                                          text:
-                                                          "Credited Account: ",
-                                                          style: Theme.of(context)
-                                                              .primaryTextTheme
-                                                              .headlineSmall
-                                                              ?.copyWith(
-                                                              fontSize: 14,
-                                                              fontWeight: FontWeight.w500),
-                                                          // Default style for the entire RichText
-                                                          // style: DefaultTextStyle.of(context).style,
-                                                          children: <TextSpan>[
-                                                            TextSpan(
-                                                              text: '',
-                                                              style: Theme.of(context)
-                                                                  .primaryTextTheme
-                                                                  .headlineSmall
-                                                                  ?.copyWith(
-                                                                fontSize: 16,
-                                                                fontWeight: FontWeight.w500,
-                                                                decoration:
-                                                                TextDecoration.underline,
-                                                                decorationColor: Theme.of(context)
-                                                                    .colorScheme
-                                                                    .primary,
-                                                              ),
-
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      flex: 1,
-                                                      child: RichText(
-                                                        textAlign: TextAlign.start,
-                                                        text: TextSpan(
-                                                          text:
-                                                          "0012345678",
-                                                          style: Theme.of(context)
-                                                              .primaryTextTheme
-                                                              .headlineSmall
-                                                              ?.copyWith(
-                                                              fontSize: 14,
-                                                              fontWeight: FontWeight.w500),
-                                                          // Default style for the entire RichText
-                                                          // style: DefaultTextStyle.of(context).style,
-                                                          children: <TextSpan>[
-                                                            TextSpan(
-                                                              text: '',
-                                                              style: Theme.of(context)
-                                                                  .primaryTextTheme
-                                                                  .headlineSmall
-                                                                  ?.copyWith(
-                                                                fontSize: 16,
-                                                                fontWeight: FontWeight.w500,
-                                                                decoration:
-                                                                TextDecoration.underline,
-                                                                decorationColor: Theme.of(context)
-                                                                    .colorScheme
-                                                                    .primary,
-                                                              ),
-
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                Container(
-                                                  margin: const EdgeInsets.only(bottom: 10, top: 10),
-                                                  child: const Divider(
-                                                    thickness: 1,
-                                                    color: AppColors.disabledButton,
-                                                  ),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    Expanded(
-                                                      child: RichText(
-                                                        textAlign: TextAlign.start,
-                                                        text: TextSpan(
-                                                          text:
-                                                          "Account Name: ",
-                                                          style: Theme.of(context)
-                                                              .primaryTextTheme
-                                                              .headlineSmall
-                                                              ?.copyWith(
-                                                              fontSize: 14,
-                                                              fontWeight: FontWeight.w500),
-                                                          // Default style for the entire RichText
-                                                          // style: DefaultTextStyle.of(context).style,
-                                                          children: <TextSpan>[
-                                                            TextSpan(
-                                                              text: '',
-                                                              style: Theme.of(context)
-                                                                  .primaryTextTheme
-                                                                  .headlineSmall
-                                                                  ?.copyWith(
-                                                                fontSize: 16,
-                                                                fontWeight: FontWeight.w500,
-                                                                decoration:
-                                                                TextDecoration.underline,
-                                                                decorationColor: Theme.of(context)
-                                                                    .colorScheme
-                                                                    .primary,
-                                                              ),
-
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      flex: 1,
-                                                      child: RichText(
-                                                        textAlign: TextAlign.start,
-                                                        text: TextSpan(
-                                                          text:
-                                                          "ABC Group",
-                                                          style: Theme.of(context)
-                                                              .primaryTextTheme
-                                                              .headlineSmall
-                                                              ?.copyWith(
-                                                              fontSize: 14,
-                                                              fontWeight: FontWeight.w500),
-                                                          // Default style for the entire RichText
-                                                          // style: DefaultTextStyle.of(context).style,
-                                                          children: <TextSpan>[
-                                                            TextSpan(
-                                                              text: '',
-                                                              style: Theme.of(context)
-                                                                  .primaryTextTheme
-                                                                  .headlineSmall
-                                                                  ?.copyWith(
-                                                                fontSize: 16,
-                                                                fontWeight: FontWeight.w500,
-                                                                decoration:
-                                                                TextDecoration.underline,
-                                                                decorationColor: Theme.of(context)
-                                                                    .colorScheme
-                                                                    .primary,
-                                                              ),
-
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                Container(
-                                                  margin: const EdgeInsets.only(bottom: 10, top: 10),
-                                                  child: const Divider(
-                                                    thickness: 1,
-                                                    color: AppColors.disabledButton,
-                                                  ),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    Expanded(
-                                                      child: RichText(
-                                                        textAlign: TextAlign.start,
-                                                        text: TextSpan(
-                                                          text:
-                                                          "Remark: ",
-                                                          style: Theme.of(context)
-                                                              .primaryTextTheme
-                                                              .headlineSmall
-                                                              ?.copyWith(
-                                                              fontSize: 14,
-                                                              fontWeight: FontWeight.w500),
-                                                          // Default style for the entire RichText
-                                                          // style: DefaultTextStyle.of(context).style,
-                                                          children: <TextSpan>[
-                                                            TextSpan(
-                                                              text: '',
-                                                              style: Theme.of(context)
-                                                                  .primaryTextTheme
-                                                                  .headlineSmall
-                                                                  ?.copyWith(
-                                                                fontSize: 16,
-                                                                fontWeight: FontWeight.w500,
-                                                                decoration:
-                                                                TextDecoration.underline,
-                                                                decorationColor: Theme.of(context)
-                                                                    .colorScheme
-                                                                    .primary,
-                                                              ),
-
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      flex: 1,
-                                                      child: RichText(
-                                                        textAlign: TextAlign.start,
-                                                        text: TextSpan(
-                                                          text:
-                                                          "Funds",
-                                                          style: Theme.of(context)
-                                                              .primaryTextTheme
-                                                              .headlineSmall
-                                                              ?.copyWith(
-                                                              fontSize: 14,
-                                                              fontWeight: FontWeight.w500),
-                                                          // Default style for the entire RichText
-                                                          // style: DefaultTextStyle.of(context).style,
-                                                          children: <TextSpan>[
-                                                            TextSpan(
-                                                              text: '',
-                                                              style: Theme.of(context)
-                                                                  .primaryTextTheme
-                                                                  .headlineSmall
-                                                                  ?.copyWith(
-                                                                fontSize: 16,
-                                                                fontWeight: FontWeight.w500,
-                                                                decoration:
-                                                                TextDecoration.underline,
-                                                                decorationColor: Theme.of(context)
-                                                                    .colorScheme
-                                                                    .primary,
-                                                              ),
-
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                Container(
-                                                  margin: const EdgeInsets.only(bottom: 10, top: 10),
-                                                  child: const Divider(
-                                                    thickness: 1,
-                                                    color: AppColors.disabledButton,
-                                                  ),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    Expanded(
-                                                      child: RichText(
-                                                        textAlign: TextAlign.start,
-                                                        text: TextSpan(
-                                                          text:
-                                                          "Session ID: ",
-                                                          style: Theme.of(context)
-                                                              .primaryTextTheme
-                                                              .headlineSmall
-                                                              ?.copyWith(
-                                                              fontSize: 14,
-                                                              fontWeight: FontWeight.w500),
-                                                          // Default style for the entire RichText
-                                                          // style: DefaultTextStyle.of(context).style,
-                                                          children: <TextSpan>[
-                                                            TextSpan(
-                                                              text: '',
-                                                              style: Theme.of(context)
-                                                                  .primaryTextTheme
-                                                                  .headlineSmall
-                                                                  ?.copyWith(
-                                                                fontSize: 16,
-                                                                fontWeight: FontWeight.w500,
-                                                                decoration:
-                                                                TextDecoration.underline,
-                                                                decorationColor: Theme.of(context)
-                                                                    .colorScheme
-                                                                    .primary,
-                                                              ),
-
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      flex: 1,
-                                                      child: RichText(
-                                                        textAlign: TextAlign.start,
-                                                        text: TextSpan(
-                                                          text:
-                                                          "000001240201183319744920658494",
-                                                          style: Theme.of(context)
-                                                              .primaryTextTheme
-                                                              .headlineSmall
-                                                              ?.copyWith(
-                                                              fontSize: 14,
-                                                              fontWeight: FontWeight.w500),
-                                                          // Default style for the entire RichText
-                                                          // style: DefaultTextStyle.of(context).style,
-                                                          children: <TextSpan>[
-                                                            TextSpan(
-                                                              text: '',
-                                                              style: Theme.of(context)
-                                                                  .primaryTextTheme
-                                                                  .headlineSmall
-                                                                  ?.copyWith(
-                                                                fontSize: 16,
-                                                                fontWeight: FontWeight.w500,
-                                                                decoration:
-                                                                TextDecoration.underline,
-                                                                decorationColor: Theme.of(context)
-                                                                    .colorScheme
-                                                                    .primary,
-                                                              ),
-
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
 
 
                                               ],
@@ -1507,6 +1733,60 @@ class _HomeState extends State<Home> {
         )
     );
   }
+
+  getHabitsController() {
+    habit_controller.getHabitsController(
+      loading: (isLoading) {
+        if (isLoading) {
+          OverlayService.showOverlay(context);
+        } else {
+          OverlayService.hideOverlay(context);
+        }
+      },
+    ).then((value) {
+      print("value.success $value");
+
+      setState(() {
+        if (value.isNotEmpty) {
+
+          habits = value;
+
+        } else {
+
+
+        }
+      });
+
+    });
+  }
+
+  createHabitsController({required HabitModel habitModel}) {
+    habit_controller.createHabitsController(
+      habitModel: habitModel,
+      loading: (isLoading) {
+        if (isLoading) {
+          OverlayService.showOverlay(context);
+        } else {
+          OverlayService.hideOverlay(context);
+        }
+      },
+    ).then((value) {
+      print("value.success $value");
+
+      setState(() {
+        if (value) {
+
+          getHabitsController();
+
+        } else {
+
+
+        }
+      });
+
+    });
+  }
+
 
 
 }

@@ -6,16 +6,12 @@ class Habit_Controller extends GetxController {
   final Habit_Http_Repository habit_http_repository;
   Habit_Controller(this.habit_http_repository);
 
-  Future<List<String>> getFrequenciesController({
-    required Function(bool) loading,
-  }) async {
-    loading(true);
+  Future<List<String>> getFrequenciesController() async {
+
     try {
       return habit_http_repository.frequencies;
     } catch (e) {
       return [];
-    }finally{
-      loading(false);
     }
   }
 

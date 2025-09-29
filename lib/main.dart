@@ -9,6 +9,7 @@ import 'package:yolanda/components/loading_overlay.dart';
 import 'package:yolanda/controller/get_controller/Controller_Bindings.dart';
 import 'package:yolanda/styles/dark_theme.dart';
 import 'package:yolanda/styles/light_theme.dart';
+import 'package:yolanda/utils/config.dart';
 
 import 'constants/constants.dart';
 import 'screens/splash_screen/splash_screen.dart';
@@ -16,6 +17,7 @@ import 'screens/splash_screen/splash_screen.dart';
 void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+    await Config.loadEnv();
     await GetStorage.init();
   } catch (e) {
     //
