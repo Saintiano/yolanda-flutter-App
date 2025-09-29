@@ -14,4 +14,5 @@ const back_arrow = "assets/svgs/back-arrow-line.svg";
 const notifications = "assets/svgs/notifications.svg";
 const question_help = "assets/svgs/help.svg";
 const search = "assets/svgs/search.svg";
+const previous = "assets/svgs/previous.svg";
 
